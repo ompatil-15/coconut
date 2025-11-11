@@ -1,7 +1,6 @@
 # Build and generate the go binary
 build:
 	go mod tidy
-	go build
 	go install
 
 # Open log file
