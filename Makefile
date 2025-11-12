@@ -1,6 +1,6 @@
 build:
 	go mod tidy
-	go install
+	go build -o coconut .
 
 test:
 	go test ./...

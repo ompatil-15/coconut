@@ -14,6 +14,13 @@ Coconut is a zero-knowledge, local-first CLI password manager built for software
 
 ## Installation
 
+### Via Homebrew (Recommended)
+```bash
+brew tap ompatil-15/coconut
+brew install coconut-pm
+```
+
+### From Source
 ```bash
 git clone https://github.com/ompatil-15/coconut.git
 cd coconut
