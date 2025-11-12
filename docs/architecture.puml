@@ -1,0 +1,209 @@
+@startuml
+left to right direction
+skinparam backgroundColor white
+skinparam linetype ortho
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam roundcorner 15
+skinparam classBorderColor #333333
+skinparam interfaceBorderColor #333333
+skinparam classFontColor black
+skinparam classBackgroundColor white
+
+' ====================================================
+' Crypto Layer
+' ====================================================
+package "Crypto Layer" #C8FACC {
+  interface CryptoStrategy <<interface>> {
+    +Encrypt(key []byte, plaintext string) (string, error)
+    +Decrypt(key []byte, ciphertext string) (string, error)
+  }
+
+  class AESGCM {
+    +Encrypt(key []byte, plaintext string) (string, error)
+    +Decrypt(key []byte, ciphertext string) (string, error)
+  }
+}
+
+' ====================================================
+' Storage Layer
+' ====================================================
+package "Storage Layer" #FFF6CC {
+  interface DB <<interface>> {
+    +Put(bucket, key string, value []byte) error
+    +Get(bucket, key string) ([]byte, error)
+    +Delete(bucket, key string) error
+    +ListKeys(bucket string) ([]string, error)
+    +CreateBucket(bucket string) error
+    +Close() error
+  }
+
+  class BoltStore {
+    -db *bolt.DB
+    +Put(bucket, key string, value []byte) error
+    +Get(bucket, key string) ([]byte, error)
+    +Delete(bucket, key string) error
+    +ListKeys(bucket string) ([]string, error)
+    +CreateBucket(bucket string) error
+    +Close() error
+  }
+}
+
+' ====================================================
+' Repository Layer
+' ====================================================
+package "Repositories" #E6E6FA {
+  interface Repository <<interface>> {
+    +Put(key string, value []byte) error
+    +Get(key string) ([]byte, error)
+    +Delete(key string) error
+    +ListKeys() ([]string, error)
+  }
+
+  interface SecretRepository <<interface>> {
+    +Add(secret Secret) (string, error)
+    +Get(key string) (*Secret, error)
+    +Update(secret Secret) error
+    +Delete(key string) error
+    +List() ([]Secret, error)
+  }
+
+  class BaseRepository {
+    -db DB
+    -bucket string
+    +Put(key string, value []byte) error
+    +Get(key string) ([]byte, error)
+    +Delete(key string) error
+    +ListKeys() ([]string, error)
+  }
+
+  class EncryptedRepository {
+    -repo Repository
+    -vault *Vault
+    -bucket string
+    +Add(secret Secret) (string, error)
+    +Get(key string) (*Secret, error)
+    +Update(secret Secret) error
+    +Delete(key string) error
+    +List() ([]Secret, error)
+  }
+
+  class RepositoryFactory {
+    -db DB
+    -vault *Vault
+    -systemBucket string
+    -secretsBucket string
+    +NewBaseRepository(bucket string) Repository
+    +NewEncryptedRepository(bucket string) SecretRepository
+    +SetVault(v *Vault)
+  }
+}
+
+' ====================================================
+' Core Layer
+' ====================================================
+package "Core" #FFEBEE {
+  class Vault {
+    -strategy CryptoStrategy
+    -key []byte
+    -salt []byte
+    -unlocked bool
+    +Unlock(derivedKey []byte)
+    +Lock()
+    +IsUnlocked() bool
+    +Encrypt(plaintext string) (string, error)
+    +Decrypt(ciphertext string) (string, error)
+    +CreateVerificationToken() (string, error)
+    +VerifyPassword(encryptedToken string) error
+  }
+
+  class Manager {
+    -repo Repository
+    -cfg *Config
+    +CreateSession(vaultKey []byte) error
+    +IsValid() bool
+    +UpdateActivity() error
+    +GetCachedKey() ([]byte, error)
+    +Clear() error
+    +GetRemainingTime() time.Duration
+  }
+}
+
+' ====================================================
+' Factory & Dependencies
+' ====================================================
+package "Factory & Dependencies" #E8F5E9 {
+  class Factory {
+    +IO *IOStreams
+    +Logger *Logger
+    +Config *Config
+    +DB DB
+    +Vault *Vault
+    +Crypto CryptoStrategy
+    +Repo *RepositoryFactory
+    +System Repository
+    +Secrets SecretRepository
+    +Session *Manager
+    +Close()
+  }
+}
+
+' ====================================================
+' Relationships
+' ====================================================
+
+' Implementations
+CryptoStrategy <|.. AESGCM
+DB <|.. BoltStore
+Repository <|.. BaseRepository
+SecretRepository <|.. EncryptedRepository
+
+' Composition
+Vault *-- CryptoStrategy : uses
+EncryptedRepository *-- Repository : wraps
+EncryptedRepository *-- Vault : uses
+BaseRepository *-- DB : uses
+Manager *-- Repository : uses
+
+' Factory creation relationships
+Factory *-- DB
+Factory *-- Vault
+Factory *-- CryptoStrategy
+Factory *-- RepositoryFactory
+Factory *-- Manager
+Factory *-- Repository
+Factory *-- SecretRepository
+
+RepositoryFactory *-- DB
+RepositoryFactory *-- Vault
+
+' ====================================================
+' Notes
+' ====================================================
+
+note right of CryptoStrategy
+  Strategy Pattern:
+  Allows swapping encryption
+  algorithms at runtime
+end note
+
+note right of Repository
+  Repository Pattern:
+  Abstracts storage operations
+  for easy testing and swapping
+end note
+
+note bottom of EncryptedRepository
+  Decorator Pattern:
+  Adds transparent encryption
+  to base repository
+end note
+
+note left of Factory
+  Factory Pattern:
+  Centralized dependency
+  injection and lifecycle
+  management
+end note
+@enduml
