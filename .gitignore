@@ -29,7 +29,7 @@ go.work
 Thumbs.db
 
 # Scripts (internal tools)
-scripts/
+# scripts/
 
 # Build artifacts
 dist/
