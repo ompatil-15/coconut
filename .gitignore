@@ -28,9 +28,6 @@ go.work
 .DS_Store
 Thumbs.db
 
-# Scripts (internal tools)
-# scripts/
-
 # Build artifacts
 dist/
 build/
