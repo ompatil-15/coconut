@@ -38,6 +38,15 @@ passwords are safe even after full device compromise.`,
 	// Configuration commands
 	cmd.AddCommand(NewConfigCmd(f))
 
+	// Version command
+	cmd.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Print the version number",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("coconut v1.0.0")
+		},
+	})
+
 	return cmd
 }
 
