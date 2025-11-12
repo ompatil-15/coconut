@@ -9,7 +9,10 @@ import (
 const configDataKey = "config:data"
 
 type storedConfig struct {
-	AutoLockSecs int `json:"autoLockSecs"`
+	AutoLockSecs  int    `json:"autoLockSecs"`
+	DBPath        string `json:"dbPath"`
+	SystemBucket  string `json:"systemBucket"`
+	SecretsBucket string `json:"secretsBucket"`
 }
 
 // Load retrieves configuration from the system repository, applying defaults when not present.
@@ -23,10 +26,19 @@ func Load(systemRepo db.Repository) (*Config, error) {
 
 	var stored storedConfig
 	if err := json.Unmarshal(data, &stored); err != nil {
-		return cfg, nil
+		return nil, err
 	}
 
 	cfg.AutoLockSecs = stored.AutoLockSecs
+	if stored.DBPath != "" {
+		cfg.DBPath = stored.DBPath
+	}
+	if stored.SystemBucket != "" {
+		cfg.SystemBucket = stored.SystemBucket
+	}
+	if stored.SecretsBucket != "" {
+		cfg.SecretsBucket = stored.SecretsBucket
+	}
 
 	return cfg, nil
 }
@@ -34,7 +46,10 @@ func Load(systemRepo db.Repository) (*Config, error) {
 // Save persists configuration values that can change at runtime.
 func Save(systemRepo db.Repository, cfg *Config) error {
 	stored := storedConfig{
-		AutoLockSecs: cfg.AutoLockSecs,
+		AutoLockSecs:  cfg.AutoLockSecs,
+		DBPath:        cfg.DBPath,
+		SystemBucket:  cfg.SystemBucket,
+		SecretsBucket: cfg.SecretsBucket,
 	}
 
 	payload, err := json.Marshal(stored)

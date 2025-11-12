@@ -78,6 +78,10 @@ func (m *Manager) IsValid() bool {
 		return false
 	}
 
+	if m.cfg.AutoLockSecs == 0 {
+		return true
+	}
+
 	timeoutSeconds := session.TimeoutSeconds
 	if m.cfg.AutoLockSecs > 0 && m.cfg.AutoLockSecs < timeoutSeconds {
 		timeoutSeconds = m.cfg.AutoLockSecs
@@ -201,5 +205,3 @@ func (m *Manager) loadSessionKey() ([]byte, error) {
 	}
 	return data, nil
 }
-
-

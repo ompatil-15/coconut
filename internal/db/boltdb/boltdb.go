@@ -30,9 +30,9 @@ func NewBoltStore(path string) (*BoltStore, error) {
 
 func (b *BoltStore) Put(bucket string, key string, value []byte) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		if err != nil {
-			return err
+		bucket := tx.Bucket([]byte(bucket))
+		if bucket == nil {
+			return errors.New("bucket not found")
 		}
 		return bucket.Put([]byte(key), value)
 	})

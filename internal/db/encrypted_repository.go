@@ -9,9 +9,15 @@ import (
 	"github.com/ompatil-15/coconut/internal/vault"
 )
 
+type Vault interface {
+	IsUnlocked() bool
+	Encrypt(plaintext string) (string, error)
+	Decrypt(ciphertext string) (string, error)
+}
+
 type EncryptedRepository struct {
 	repo   Repository
-	vault  *vault.Vault
+	vault  Vault
 	bucket string
 }
 
@@ -19,7 +25,7 @@ func (f *RepositoryFactory) SetVault(v *vault.Vault) {
 	f.vault = v
 }
 
-func NewEncryptedRepository(repo Repository, v *vault.Vault, bucket string) *EncryptedRepository {
+func NewEncryptedRepository(repo Repository, v Vault, bucket string) *EncryptedRepository {
 	return &EncryptedRepository{
 		repo:   repo,
 		vault:  v,

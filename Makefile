@@ -1,18 +1,19 @@
-# Build and generate the go binary
 build:
 	go mod tidy
 	go install
 
-# Open log file
+test:
+	go test ./...
+
+coverage:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+
 logs:
-	tail -f 50 ~/.coconut/logs/coconut.log
+	tail -f ~/.coconut/logs/coconut.log
 
-# Clear the database
 clear_db:
-	rm ~/.coconut/coconut.db
+	@read -p "Delete all passwords? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	rm -f ~/.coconut/coconut.db
 
-# Dump the database contents
-db_dump:
-	go run scripts/db_dump.go
-
-.PHONY: build logs clear_db db_dump
+.PHONY: build test coverage logs clear_db
