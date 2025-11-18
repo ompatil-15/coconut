@@ -15,5 +15,7 @@ logs:
 clear_db:
 	@read -p "Delete all passwords? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
 	rm -f ~/.coconut/coconut.db
+windows_exe:
+	GOOS=windows GOARCH=amd64 go build -o coconut.exe
 
-.PHONY: build test coverage logs clear_db
+.PHONY: build test coverage logs clear_db windows_exe
