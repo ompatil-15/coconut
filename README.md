@@ -119,7 +119,8 @@ Licensed under the Apache License, Version 2.0 - see [LICENSE](LICENSE) file for
 
 ## Author
 
-**Om Patil** - [patilom001@gmail.com](mailto:patilom001@gmail.com)
+- Email: [patilom001@gmail.com](mailto:patilom001@gmail.com)
+- LinkedIn: https://www.linkedin.com/in/ompatil15
 
 ---
 
